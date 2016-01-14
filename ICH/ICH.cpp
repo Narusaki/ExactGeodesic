@@ -40,6 +40,7 @@ void ICH::Execute()
 	{
 		// Get valid window (for window whose pseudoSrcBirthTime is not equal (which means smaller/older) than
 		// the current one, it must be an old window, which can be safely skipped)
+		/*cout << "\r" << winQ.size() << " " << pseudoSrcQ.size();*/
 		while (!winQ.empty() &&
 			winQ.top().pseudoSrcBirthTime != vertInfos[winQ.top().pseudoSrcId].birthTime)
 			winQ.pop();
@@ -54,9 +55,10 @@ void ICH::Execute()
 			if (win.level > mesh->m_nFace) continue;
 			PropagateWindow(win);
 		}
-		else if (!pseudoSrcQ.empty() && (winQ.empty() || winQ.top().minDist > pseudoSrcQ.top().dist))
+		else if (!pseudoSrcQ.empty() && (winQ.empty() || winQ.top().minDist >= pseudoSrcQ.top().dist))
 		{
 			PseudoWindow pseudoWin = pseudoSrcQ.top(); pseudoSrcQ.pop();
+			if (pseudoWin.level >= mesh->m_nFace) continue;
 			GenSubWinsForPseudoSrc(pseudoWin);
 		}
 	}
@@ -64,7 +66,7 @@ void ICH::Execute()
 
 void ICH::BuildGeodesicPathTo(unsigned vertId)
 {
-
+	// TODO: build geodesic path from vertex vertId to source
 }
 
 double ICH::GetDistanceTo(unsigned vertId)
@@ -91,7 +93,6 @@ void ICH::Initialize()
 			win.level = 0;
 			winQ.push(win);
 
-
 			unsigned opVert = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_iVertex[1];
 			vertInfos[opVert].birthTime = 0;
 			vertInfos[opVert].dist = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length;
@@ -102,7 +103,7 @@ void ICH::Initialize()
 			PseudoWindow pseudoWin;
 			pseudoWin.vertID = opVert; pseudoWin.dist = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length;
 			pseudoWin.srcId = srcId; pseudoWin.pseudoSrcId = srcId;
-			pseudoWin.pseudoBirthTime = 0;
+			pseudoWin.pseudoBirthTime = vertInfos[opVert].birthTime;
 			pseudoWin.level = 0;
 			pseudoSrcQ.push(pseudoWin);
 		}
@@ -169,7 +170,7 @@ void ICH::PropagateWindow(const Window &win)
 			splitInfos[e0].pseudoSrcId = win.pseudoSrcId;
 			splitInfos[e0].srcId = win.srcID;
 			splitInfos[e0].level = win.level;
-			splitInfos[e0].x = interX;
+			splitInfos[e0].x = l0 - interX;
 
 			if (directDist + win.pseudoSrcDist < vertInfos[opVert].dist)
 			{
@@ -181,7 +182,7 @@ void ICH::PropagateWindow(const Window &win)
 					PseudoWindow pseudoWin;
 					pseudoWin.vertID = opVert; pseudoWin.dist = vertInfos[opVert].dist;
 					pseudoWin.srcId = win.srcID; pseudoWin.pseudoSrcId = win.pseudoSrcId;
-					pseudoWin.pseudoBirthTime = win.pseudoSrcBirthTime;
+					pseudoWin.pseudoBirthTime = vertInfos[opVert].birthTime;
 					pseudoWin.level = win.level + 1;
 					pseudoSrcQ.push(pseudoWin);
 				}
@@ -226,7 +227,7 @@ void ICH::GenSubWinsForPseudoSrc(const PseudoWindow &pseudoWin)
 		win.d0 = mesh->m_pEdge[startEdge].m_length;
 		win.d1 = mesh->m_pEdge[mesh->m_pEdge[win.edgeID].m_iNextEdge].m_length;
 		win.pseudoSrcDist = pseudoWin.dist; win.calcMinDist();
-		win.srcID = pseudoWin.srcId; win.pseudoSrcId = pseudoWin.pseudoSrcId;
+		win.srcID = pseudoWin.srcId; win.pseudoSrcId = pseudoWin.vertID;
 		win.pseudoSrcBirthTime = pseudoWin.pseudoBirthTime;
 		win.level = pseudoWin.level + 1;
 		winQ.push(win);
@@ -249,7 +250,7 @@ void ICH::GenSubWinsForPseudoSrc(const PseudoWindow &pseudoWin)
 		PseudoWindow childPseudoWin;
 		childPseudoWin.vertID = opVert; childPseudoWin.dist = vertInfos[opVert].dist;
 		childPseudoWin.srcId = pseudoWin.srcId; childPseudoWin.pseudoSrcId = pseudoWin.vertID;
-		childPseudoWin.pseudoBirthTime = pseudoWin.pseudoBirthTime;
+		childPseudoWin.pseudoBirthTime = vertInfos[opVert].birthTime;
 		childPseudoWin.level = pseudoWin.level;
 		pseudoSrcQ.push(childPseudoWin);
 	}
@@ -267,10 +268,10 @@ void ICH::GenSubWinsForPseudoSrcFromWindow(const PseudoWindow &pseudoWin, unsign
 
 	unsigned pseudoSrc = pseudoWin.vertID;
 	Vector2D enterPoint;
-	enterPoint.x = mesh->m_pEdge[e0].m_length - splitInfos[e0].x;
+	enterPoint.x = l0 - splitInfos[e0].x;
 	enterPoint.y = 0.0;
 
-	Vector2D v0(0.0, 0.0), v1(mesh->m_pEdge[e0].m_length, 0.0), v2;
+	Vector2D v0(0.0, 0.0), v1(l0, 0.0), v2;
 	v2.x = (l1*l1 + l0*l0 - l2*l2) / (2.0*l0);
 	v2.y = -sqrt(fabs(l1*l1 - v2.x*v2.x));
 
