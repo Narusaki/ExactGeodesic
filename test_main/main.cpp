@@ -30,6 +30,33 @@ int main(int argc, char **argv)
 	ich->Execute();
 	clock_t end = clock();
 	cout << "Time elapsed: " << (double)(end - start) / (double)CLOCKS_PER_SEC << endl;
+	ich->OutputStatisticInfo();
+// 	unsigned dstVert = 500, srcId;
+// 	auto gp = ich->BuildGeodesicPathTo(dstVert, srcId);
+// 	double totalLen = 0.0;
+// 	Vector3D lastPoint = mesh->m_pVertex[dstVert].m_vPosition;
+// 	for (auto iter = gp.begin(); iter != gp.end(); ++iter)
+// 	{
+// 		if (iter->isVertex)
+// 		{
+// 			cout << "Saddle vertex: " << iter->id << endl;
+// 			totalLen += (lastPoint - mesh->m_pVertex[iter->id].m_vPosition).length();
+// 			lastPoint = mesh->m_pVertex[iter->id].m_vPosition;
+// 		}
+// 		else
+// 		{
+// 			Vector3D p0 = mesh->m_pVertex[mesh->m_pEdge[iter->id].m_iVertex[0]].m_vPosition;
+// 			Vector3D p1 = mesh->m_pVertex[mesh->m_pEdge[iter->id].m_iVertex[1]].m_vPosition;
+// 			double l = mesh->m_pEdge[iter->id].m_length;
+// 			Vector3D curPoint = (1.0 - iter->pos / l) * p0 + iter->pos / l * p1;
+// 			cout << "Edge point: " << curPoint << endl;
+// 			totalLen += (lastPoint - curPoint).length();
+// 			lastPoint = curPoint;
+// 		}
+// 	}
+// 	totalLen += (lastPoint - mesh->m_pVertex[srcId].m_vPosition).length();
+// 	cout << "Accumulated length: " << totalLen << endl;
+// 	cout << "Stored length: " << ich->GetDistanceTo(dstVert) << endl;
 
 	// outputing
 	cout << "Outputing ..." << endl;

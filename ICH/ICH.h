@@ -87,6 +87,13 @@ public:
 
 		VertInfo() { birthTime = -1; dist = DBL_MAX; enterEdge = -1; }
 	};
+
+	struct GeodesicKeyPoint
+	{
+		bool isVertex;
+		unsigned id;
+		double pos;
+	};
 	
 public:
 	ICH();
@@ -96,7 +103,8 @@ public:
 	void AssignMesh(CMesh *mesh_);
 	void AddSource(unsigned vertId);
 	void Execute();
-	void BuildGeodesicPathTo(unsigned vertId);
+	void OutputStatisticInfo();
+	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned vertId, unsigned &srcId);
 	double GetDistanceTo(unsigned vertId);
 
 private:
@@ -123,5 +131,8 @@ private:
 	std::priority_queue< Window > winQ;
 	std::priority_queue< PseudoWindow > pseudoSrcQ;
 	std::vector< unsigned > sourceVerts;
+
+	// statistics
+	int numOfWinGen;
 	
 };
