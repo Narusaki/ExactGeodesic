@@ -13,6 +13,8 @@ using namespace std;
 ICH::ICH()
 {
 	numOfWinGen = 0;
+	maxWinQSize = 0;
+	maxPseudoQSize = 0;
 	return;
 }
 
@@ -43,6 +45,9 @@ void ICH::Execute()
 		// Get valid window (for window whose pseudoSrcBirthTime is not equal (which means smaller/older) than
 		// the current one, it must be an old window, which can be safely skipped)
 		/*cout << "\r" << winQ.size() << " " << pseudoSrcQ.size();*/
+		maxWinQSize = max(maxWinQSize, winQ.size());
+		maxPseudoQSize = max(maxPseudoQSize, pseudoSrcQ.size());
+
 		while (!winQ.empty() &&
 			winQ.top().pseudoSrcBirthTime != vertInfos[winQ.top().pseudoSrcId].birthTime)
 			winQ.pop();
@@ -69,6 +74,8 @@ void ICH::Execute()
 void ICH::OutputStatisticInfo()
 {
 	cout << "Total generated window number: " << numOfWinGen << endl;
+	cout << "Max windows queue size: " << maxWinQSize << endl;
+	cout << "Max pseudo-source queue size: " << maxPseudoQSize << endl;
 }
 
 list<ICH::GeodesicKeyPoint> ICH::BuildGeodesicPathTo(unsigned vertId, unsigned &srcId)
@@ -257,7 +264,7 @@ void ICH::PropagateWindow(const Window &win)
 		double directDist = (v2 - src2D).length();
 		// ONE ANGLE, ONE SPLIT
 		if (directDist + win.pseudoSrcDist > splitInfos[e0].dist && 
-			(directDist+win.pseudoSrcDist - splitInfos[e0].dist) / splitInfos[e0].dist > RELATIVE_ERROR)
+			(directDist + win.pseudoSrcDist) / splitInfos[e0].dist - 1.0 > RELATIVE_ERROR)
 		{
 			hasLeftChild = splitInfos[e0].x < interX;
 			hasRightChild = !hasLeftChild;
@@ -493,13 +500,13 @@ bool ICH::IsValidWindow(const Window &win, bool isLeftChild)
 	
 
 	if (win.pseudoSrcDist + (src2D - B).length() > vertInfos[v1].dist + win.b1 && 
-		(win.pseudoSrcDist + (src2D - B).length()) / (vertInfos[v1].dist + win.b1) > RELATIVE_ERROR)
+		(win.pseudoSrcDist + (src2D - B).length()) / (vertInfos[v1].dist + win.b1) - 1.0 > 0.0)
 	{
 		/*cout << "Filter 2 works..." << endl;*/
 		return false;
 	}
 	if (win.pseudoSrcDist + (src2D - A).length() > vertInfos[v2].dist + l0 - win.b0 && 
-		(win.pseudoSrcDist + (src2D - A).length()) / (vertInfos[v2].dist + l0 - win.b0) > RELATIVE_ERROR)
+		(win.pseudoSrcDist + (src2D - A).length()) / (vertInfos[v2].dist + l0 - win.b0) - 1.0 > 0.0)
 	{
 		/*cout << "Filter 2 works..." << endl;*/
 		return false;
@@ -507,7 +514,7 @@ bool ICH::IsValidWindow(const Window &win, bool isLeftChild)
 	if (isLeftChild)
 	{
 		if (win.pseudoSrcDist + (src2D - A).length() > vertInfos[v3].dist + (p3 - A).length() && 
-			(win.pseudoSrcDist + (src2D - A).length()) / (vertInfos[v3].dist + (p3 - A).length()) > RELATIVE_ERROR)
+			(win.pseudoSrcDist + (src2D - A).length()) / (vertInfos[v3].dist + (p3 - A).length()) - 1.0 > 0.0)
 		{
 			/*cout << "Filter 2 works..." << endl;*/
 			return false;
@@ -516,7 +523,7 @@ bool ICH::IsValidWindow(const Window &win, bool isLeftChild)
 	else
 	{
 		if (win.pseudoSrcDist + (src2D - B).length() > vertInfos[v3].dist + (p3 - B).length() && 
-			(win.pseudoSrcDist + (src2D - B).length()) / (vertInfos[v3].dist + (p3 - B).length()) > RELATIVE_ERROR)
+			(win.pseudoSrcDist + (src2D - B).length()) / (vertInfos[v3].dist + (p3 - B).length()) - 1.0 > RELATIVE_ERROR)
 		{
 			/*cout << "Filter 2 works..." << endl;*/
 			return false;

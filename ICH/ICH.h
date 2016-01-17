@@ -15,7 +15,8 @@
 #include <queue>
 #include <math.h>
 
-#define RELATIVE_ERROR 1e-3
+#define RELATIVE_ERROR 1e-8
+//#define L_RELATIVE_ERROR 1e-3
 
 // This class is exported from the ICH.dll
 class ICH_API ICH {
@@ -134,5 +135,6 @@ private:
 
 	// statistics
 	int numOfWinGen;
+	int maxWinQSize, maxPseudoQSize;
 	
 };

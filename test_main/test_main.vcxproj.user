@@ -7,7 +7,7 @@
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>bunny.obj 0 bunny.out.obj bunny.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>bunny.obj 67972 bunny.out.obj bunny.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
@@ -19,7 +19,7 @@ $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>bunny.obj 0 bunny.out.obj bunny.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>Armadillo.obj 37301 Armadillo.out.obj Armadillo.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
