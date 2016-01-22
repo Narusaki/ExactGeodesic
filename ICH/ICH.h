@@ -103,8 +103,11 @@ public:
 
 	void AssignMesh(CMesh *mesh_);
 	void AddSource(unsigned vertId);
-	void Execute();
+	void AddSource(unsigned faceId, Vector3D pos);
+	void AddFacesKeptWindow(unsigned faceId);
+	void Execute(int totalCalcVertNum_ = -1);
 	void OutputStatisticInfo();
+	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned faceId, Vector3D pos, unsigned &srcId);
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned vertId, unsigned &srcId);
 	double GetDistanceTo(unsigned vertId);
 
@@ -132,9 +135,14 @@ private:
 	std::priority_queue< Window > winQ;
 	std::priority_queue< PseudoWindow > pseudoSrcQ;
 	std::vector< unsigned > sourceVerts;
+	std::vector< std::pair< unsigned, Vector3D > > sourcePoints;
+
+	std::vector< Window > storedWindows;
+	std::vector< unsigned > keptFaces;
 
 	// statistics
 	int numOfWinGen;
 	int maxWinQSize, maxPseudoQSize;
+	int totalCalcVertNum;
 	
 };
