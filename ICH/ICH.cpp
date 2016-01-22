@@ -153,6 +153,7 @@ list<ICH::GeodesicKeyPoint> ICH::BuildGeodesicPathTo(unsigned faceId, Vector3D p
 
 		// calculate the shortest distance
 		double curXInter = src2D.x - (curPos2D.x - src2D.x) / (curPos2D.y - src2D.y) * src2D.y;
+		if (curXInter <= 0.0 || curXInter >= l0) continue;
 		double curMinDist = DBL_MAX;
 		if (curXInter > iter->b0 && curXInter < iter->b1)
 			curMinDist = (curPos2D - src2D).length() + iter->pseudoSrcDist;
