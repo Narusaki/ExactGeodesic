@@ -24,6 +24,35 @@ ICH::~ICH()
 	return;
 }
 
+void ICH::Clear()
+{
+	while (!winQ.empty()) winQ.pop();
+	while (!pseudoSrcQ.empty()) pseudoSrcQ.pop();
+
+	for (int i = 0; i < mesh->m_nEdge; ++i)
+	{
+		splitInfos[i].dist = DBL_MAX;
+		splitInfos[i].x = DBL_MAX;
+		splitInfos[i].pseudoSrcId = -1;
+	}
+	for (int i = 0; i < mesh->m_nVertex; ++i)
+	{
+		vertInfos[i].birthTime = -1;
+		vertInfos[i].dist = DBL_MAX;
+		vertInfos[i].enterEdge = -1;
+	}
+	sourceVerts.clear();
+	sourcePoints.clear();
+
+	storedWindows.clear();
+	keptFaces.clear();
+
+	numOfWinGen = 0;
+	maxWinQSize = 0;
+	maxPseudoQSize = 0;
+	totalCalcVertNum = 0;
+}
+
 void ICH::AssignMesh(CMesh *mesh_)
 {
 	mesh = mesh_;
@@ -760,6 +789,7 @@ void ICH::GenSubWinsForPseudoSrcFromPseudoSrc(const PseudoWindow &pseudoWin, uns
 
 bool ICH::IsValidWindow(const Window &win, bool isLeftChild)
 {
+	if (win.b1 <= win.b0) return false;
 	// apply ICH's filter
 	unsigned v1 = mesh->m_pEdge[win.edgeID].m_iVertex[0];
 	unsigned v2 = mesh->m_pEdge[win.edgeID].m_iVertex[1];

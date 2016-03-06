@@ -15,7 +15,7 @@
 #include <queue>
 #include <math.h>
 
-#define RELATIVE_ERROR 1e-8
+#define RELATIVE_ERROR 1e-2
 //#define L_RELATIVE_ERROR 1e-3
 
 // This class is exported from the ICH.dll
@@ -100,7 +100,7 @@ public:
 	ICH();
 	~ICH();
 	// TODO: add your methods here.
-
+	void Clear();
 	void AssignMesh(CMesh *mesh_);
 	void AddSource(unsigned vertId);
 	void AddSource(unsigned faceId, Vector3D pos);

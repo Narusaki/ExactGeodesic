@@ -7,7 +7,7 @@
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>eight.uniform.obj eight.uniform3.info eight.uniform.out.obj eight.uniform.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>torus.obj Individual_302.txt torus.out.obj tours.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
@@ -19,7 +19,7 @@ $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>eight.uniform.obj eight.uniform3.info eight.uniform.out.obj eight.uniform.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>torus.obj Individual_302.txt torus.out.obj tours.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
