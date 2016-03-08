@@ -623,13 +623,13 @@ void ICH::PropagateWindow(const Window &win)
 void ICH::GenSubWinsForPseudoSrc(const PseudoWindow &pseudoWin)
 {
 	unsigned startEdge, endEdge;
-	if (mesh->m_pEdge[vertInfos[pseudoWin.vertID].enterEdge].m_iVertex[0] == pseudoWin.vertID)
-		GenSubWinsForPseudoSrcFromPseudoSrc(pseudoWin, startEdge, endEdge);
-	else if (vertInfos[pseudoWin.vertID].enterEdge == -1 && vertInfos[pseudoWin.vertID].birthTime != -1)
+	if (vertInfos[pseudoWin.vertID].enterEdge == -1 && vertInfos[pseudoWin.vertID].birthTime != -1)
 	{
 		startEdge = mesh->m_pVertex[pseudoWin.vertID].m_piEdge[0];
 		endEdge = startEdge;
 	}
+	else if (mesh->m_pEdge[vertInfos[pseudoWin.vertID].enterEdge].m_iVertex[0] == pseudoWin.vertID)
+		GenSubWinsForPseudoSrcFromPseudoSrc(pseudoWin, startEdge, endEdge);
 	else if (mesh->m_pEdge[mesh->m_pEdge[vertInfos[pseudoWin.vertID].enterEdge].m_iNextEdge].m_iVertex[1] == pseudoWin.vertID)
 		GenSubWinsForPseudoSrcFromWindow(pseudoWin, startEdge, endEdge);
 	else assert(false);
@@ -705,7 +705,7 @@ void ICH::GenSubWinsForPseudoSrcFromWindow(const PseudoWindow &pseudoWin, unsign
 	startEdge = -1, endEdge = -1;
 	// traverse from left
 	unsigned curEdge = mesh->m_pEdge[e1].m_iTwinEdge;
-	while (angle0 < PI || curEdge == -1)
+	while (angle0 < PI && curEdge != -1)
 	{
 		unsigned opEdge = mesh->m_pEdge[curEdge].m_iNextEdge;
 		unsigned nextEdge = mesh->m_pEdge[opEdge].m_iNextEdge;
@@ -722,7 +722,7 @@ void ICH::GenSubWinsForPseudoSrcFromWindow(const PseudoWindow &pseudoWin, unsign
 
 	// traverse from right
 	curEdge = mesh->m_pEdge[e2].m_iTwinEdge;
-	while (angle1 < PI || curEdge == -1)
+	while (angle1 < PI && curEdge != -1)
 	{
 		unsigned nextEdge = mesh->m_pEdge[curEdge].m_iNextEdge;
 		unsigned opEdge = mesh->m_pEdge[nextEdge].m_iNextEdge;
@@ -751,7 +751,7 @@ void ICH::GenSubWinsForPseudoSrcFromPseudoSrc(const PseudoWindow &pseudoWin, uns
 	startEdge = -1, endEdge = -1;
 	// traverse from left
 	unsigned curEdge = vertInfos[pseudoWin.vertID].enterEdge;
-	while (angle0 < PI || curEdge == -1)
+	while (angle0 < PI && curEdge != -1)
 	{
 		unsigned opEdge = mesh->m_pEdge[curEdge].m_iNextEdge;
 		unsigned nextEdge = mesh->m_pEdge[opEdge].m_iNextEdge;
@@ -768,7 +768,7 @@ void ICH::GenSubWinsForPseudoSrcFromPseudoSrc(const PseudoWindow &pseudoWin, uns
 
 	// traverse from right
 	curEdge = mesh->m_pEdge[vertInfos[pseudoWin.vertID].enterEdge].m_iTwinEdge;
-	while (angle1 < PI || curEdge == -1)
+	while (angle1 < PI && curEdge != -1)
 	{
 		unsigned nextEdge = mesh->m_pEdge[curEdge].m_iNextEdge;
 		unsigned opEdge = mesh->m_pEdge[nextEdge].m_iNextEdge;
