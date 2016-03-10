@@ -40,6 +40,7 @@ void ICH::Clear()
 		vertInfos[i].birthTime = -1;
 		vertInfos[i].dist = DBL_MAX;
 		vertInfos[i].enterEdge = -1;
+		vertInfos[i].isSource = false;
 	}
 	sourceVerts.clear();
 	sourcePoints.clear();
@@ -342,7 +343,7 @@ list<ICH::GeodesicKeyPoint> ICH::BuildGeodesicPathTo(unsigned vertId, unsigned &
 		{
 			// next key point is still a vertex
 			unsigned nextVert = mesh->m_pEdge[enterEdge].m_iVertex[1];
-			if (vertInfos[nextVert].dist != 0.0)
+			if (!vertInfos[nextVert].isSource)
 			{
 				gkp.isVertex = true;
 				gkp.id = nextVert;
@@ -478,6 +479,7 @@ void ICH::Initialize()
 		vertInfos[srcId].birthTime = 0;
 		vertInfos[srcId].dist = 0.0;
 		vertInfos[srcId].enterEdge = -1;
+		vertInfos[srcId].isSource = true;
 	}
 
 	for (int i = 0; i < sourcePoints.size(); ++i)

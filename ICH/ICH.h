@@ -84,9 +84,10 @@ public:
 	{
 		int birthTime;
 		double dist;
+		bool isSource;
 		int enterEdge;
 
-		VertInfo() { birthTime = -1; dist = DBL_MAX; enterEdge = -1; }
+		VertInfo() { birthTime = -1; dist = DBL_MAX; isSource = false; enterEdge = -1; }
 	};
 
 	struct GeodesicKeyPoint
