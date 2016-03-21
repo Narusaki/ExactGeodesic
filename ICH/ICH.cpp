@@ -16,6 +16,8 @@ ICH::ICH()
 	maxWinQSize = 0;
 	maxPseudoQSize = 0;
 	totalCalcVertNum = 0;
+	geodRadius = DBL_MAX;
+	geodRadiusReached = false;
 	return;
 }
 
@@ -52,6 +54,8 @@ void ICH::Clear()
 	maxWinQSize = 0;
 	maxPseudoQSize = 0;
 	totalCalcVertNum = 0;
+	geodRadius = DBL_MAX;
+	geodRadiusReached = false;
 }
 
 void ICH::AssignMesh(CMesh *mesh_)
@@ -74,6 +78,11 @@ void ICH::AddSource(unsigned faceId, Vector3D pos)
 void ICH::AddFacesKeptWindow(unsigned faceId)
 {
 	keptFaces.push_back(faceId);
+}
+
+void ICH::SetMaxGeodRadius(double geodRadius_)
+{
+	geodRadius = geodRadius_;
 }
 
 void ICH::Execute(int totalCalcVertNum_)
@@ -116,6 +125,8 @@ void ICH::Execute(int totalCalcVertNum_)
 		}
 
 		if (totalCalcVertNum_ != -1 && totalCalcVertNum >= totalCalcVertNum_)
+			break;
+		if (geodRadiusReached)
 			break;
 	}
 }
@@ -578,6 +589,8 @@ void ICH::PropagateWindow(const Window &win)
 			{
 				if (vertInfos[opVert].dist == DBL_MAX)
 					++totalCalcVertNum;
+				if (directDist + win.pseudoSrcDist >= geodRadius)
+					geodRadiusReached = true;
 
 				++vertInfos[opVert].birthTime;
 				vertInfos[opVert].dist = directDist + win.pseudoSrcDist;
@@ -664,6 +677,8 @@ void ICH::GenSubWinsForPseudoSrc(const PseudoWindow &pseudoWin)
 
 		if (vertInfos[opVert].dist == DBL_MAX)
 			++totalCalcVertNum;
+		if (pseudoWin.dist + mesh->m_pEdge[adjEdge].m_length >= geodRadius)
+			geodRadiusReached = true;
 
 		vertInfos[opVert].dist = pseudoWin.dist + mesh->m_pEdge[adjEdge].m_length;
 		++vertInfos[opVert].birthTime;

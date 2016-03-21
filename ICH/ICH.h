@@ -106,6 +106,7 @@ public:
 	void AddSource(unsigned vertId);
 	void AddSource(unsigned faceId, Vector3D pos);
 	void AddFacesKeptWindow(unsigned faceId);
+	void SetMaxGeodRadius(double geodRadius_);
 	void Execute(int totalCalcVertNum_ = -1);
 	void OutputStatisticInfo();
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned faceId, Vector3D pos, unsigned &srcId);
@@ -145,5 +146,6 @@ private:
 	int numOfWinGen;
 	int maxWinQSize, maxPseudoQSize;
 	int totalCalcVertNum;
-	
+	double geodRadius;
+	bool geodRadiusReached;
 };
