@@ -579,11 +579,14 @@ void ICH::PropagateWindow(const Window &win)
 		}
 		else
 		{
-			splitInfos[e0].dist = directDist + win.pseudoSrcDist;
-			splitInfos[e0].pseudoSrcId = win.pseudoSrcId;
-			splitInfos[e0].srcId = win.srcID;
-			splitInfos[e0].level = win.level;
-			splitInfos[e0].x = l0 - interX;
+			if (directDist + win.pseudoSrcDist < splitInfos[e0].dist)
+			{
+				splitInfos[e0].dist = directDist + win.pseudoSrcDist;
+				splitInfos[e0].pseudoSrcId = win.pseudoSrcId;
+				splitInfos[e0].srcId = win.srcID;
+				splitInfos[e0].level = win.level;
+				splitInfos[e0].x = l0 - interX;
+			}
 
 			if (directDist + win.pseudoSrcDist < vertInfos[opVert].dist)
 			{

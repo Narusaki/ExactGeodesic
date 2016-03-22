@@ -7,7 +7,7 @@
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>cylinder.obj cylinder.info cylinder.out.obj cylinder.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>bunny.obj bunny2.info bunny.out.obj bunny.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
@@ -19,7 +19,7 @@ $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>cylinder.obj cylinder.info cylinder.out.obj cylinder.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>bunny.obj bunny2.info bunny.out.obj bunny.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>

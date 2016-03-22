@@ -15,7 +15,7 @@
 #include <queue>
 #include <math.h>
 
-#define RELATIVE_ERROR 1e-2
+#define RELATIVE_ERROR 1e-6
 //#define L_RELATIVE_ERROR 1e-3
 
 // This class is exported from the ICH.dll
