@@ -43,6 +43,8 @@ void ICH::Clear()
 		vertInfos[i].dist = DBL_MAX;
 		vertInfos[i].enterEdge = -1;
 		vertInfos[i].isSource = false;
+		vertInfos[i].pseudoSrcId = -1;
+		vertInfos[i].srcId = -1;
 	}
 	sourceVerts.clear();
 	sourcePoints.clear();
@@ -309,7 +311,7 @@ list<ICH::GeodesicKeyPoint> ICH::BuildGeodesicPathTo(unsigned faceId, Vector3D p
 			dstVert = minWin.pseudoSrcId;
 			srcId = dstVert;
 		}
-		else if (vertInfos[opVert].dist != 0.0)
+		else if (!vertInfos[opVert].isSource)
 		{
 			gkp.isVertex = true;
 			gkp.id = opVert;
@@ -330,7 +332,7 @@ list<ICH::GeodesicKeyPoint> ICH::BuildGeodesicPathTo(unsigned vertId, unsigned &
 	list < GeodesicKeyPoint > path;
 	unsigned curVert = vertId;
 	GeodesicKeyPoint gkp;
-	while (vertInfos[curVert].dist != 0.0)
+	while (!vertInfos[curVert].isSource)
 	{
 		unsigned enterEdge = vertInfos[curVert].enterEdge;
 		if (enterEdge == -1)
@@ -435,7 +437,7 @@ list<ICH::GeodesicKeyPoint> ICH::BuildGeodesicPathTo(unsigned vertId, unsigned &
 				curVert = splitInfos[enterEdge].pseudoSrcId;
 				break;
 			}
-			if (vertInfos[opVert].dist != 0.0)
+			if (!vertInfos[opVert].isSource)
 			{
 				gkp.isVertex = true;
 				gkp.id = opVert;
@@ -477,6 +479,7 @@ void ICH::Initialize()
 			vertInfos[opVert].birthTime = 0;
 			vertInfos[opVert].dist = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length;
 			vertInfos[opVert].enterEdge = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_iTwinEdge;
+			vertInfos[opVert].srcId = srcId; vertInfos[opVert].pseudoSrcId = srcId;
 
 			if (mesh->m_pAngles[opVert] < 2.0 * PI) continue;
 
@@ -491,6 +494,7 @@ void ICH::Initialize()
 		vertInfos[srcId].dist = 0.0;
 		vertInfos[srcId].enterEdge = -1;
 		vertInfos[srcId].isSource = true;
+		vertInfos[srcId].srcId = srcId; vertInfos[srcId].pseudoSrcId = srcId;
 	}
 
 	for (int i = 0; i < sourcePoints.size(); ++i)
@@ -512,6 +516,7 @@ void ICH::Initialize()
 			vertInfos[opVert].birthTime = 0;
 			vertInfos[opVert].dist = (sourcePoints[i].second - mesh->m_pVertex[opVert].m_vPosition).length();
 			vertInfos[opVert].enterEdge = -1;
+			vertInfos[opVert].srcId = mesh->m_nVertex + i; vertInfos[opVert].pseudoSrcId = mesh->m_nVertex + i;
 
 			if (mesh->m_pAngles[opVert] < 2.0 * PI) continue;
 
@@ -598,6 +603,7 @@ void ICH::PropagateWindow(const Window &win)
 				++vertInfos[opVert].birthTime;
 				vertInfos[opVert].dist = directDist + win.pseudoSrcDist;
 				vertInfos[opVert].enterEdge = e0;
+				vertInfos[opVert].srcId = win.srcID; vertInfos[opVert].pseudoSrcId = win.pseudoSrcId;
 				if (mesh->m_pAngles[opVert] > 2.0 * PI)
 				{
 					PseudoWindow pseudoWin;
@@ -686,6 +692,7 @@ void ICH::GenSubWinsForPseudoSrc(const PseudoWindow &pseudoWin)
 		vertInfos[opVert].dist = pseudoWin.dist + mesh->m_pEdge[adjEdge].m_length;
 		++vertInfos[opVert].birthTime;
 		vertInfos[opVert].enterEdge = mesh->m_pEdge[adjEdge].m_iTwinEdge;
+		vertInfos[opVert].srcId = pseudoWin.srcId; vertInfos[opVert].pseudoSrcId = pseudoWin.pseudoSrcId;
 
 		PseudoWindow childPseudoWin;
 		childPseudoWin.vertID = opVert; childPseudoWin.dist = vertInfos[opVert].dist;

@@ -10,6 +10,9 @@
 #define ICH_API __declspec(dllimport)
 #endif
 
+#ifndef ICH_H
+#define ICH_H
+
 #include <Mesh.h>
 #include <vector>
 #include <queue>
@@ -86,8 +89,11 @@ public:
 		double dist;
 		bool isSource;
 		int enterEdge;
+		unsigned pseudoSrcId, srcId;
 
-		VertInfo() { birthTime = -1; dist = DBL_MAX; isSource = false; enterEdge = -1; }
+		VertInfo() { birthTime = -1; dist = DBL_MAX; isSource = false; enterEdge = -1; 
+			pseudoSrcId = -1; srcId = -1;
+		}
 	};
 
 	struct GeodesicKeyPoint
@@ -112,6 +118,9 @@ public:
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned faceId, Vector3D pos, unsigned &srcId);
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned vertId, unsigned &srcId);
 	double GetDistanceTo(unsigned vertId);
+
+	SplitInfo& GetSplitInfo(int ei) { return splitInfos[ei]; }
+	VertInfo& GetVertInfo(int vi) { return vertInfos[vi]; }
 
 private:
 	void Initialize();
@@ -149,3 +158,5 @@ private:
 	double geodRadius;
 	bool geodRadiusReached;
 };
+
+#endif
