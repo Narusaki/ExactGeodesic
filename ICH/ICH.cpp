@@ -476,19 +476,22 @@ void ICH::Initialize()
 			++numOfWinGen;
 
 			unsigned opVert = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_iVertex[1];
-			vertInfos[opVert].birthTime = 0;
-			vertInfos[opVert].dist = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length;
-			vertInfos[opVert].enterEdge = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_iTwinEdge;
-			vertInfos[opVert].srcId = srcId; vertInfos[opVert].pseudoSrcId = srcId;
+			if (mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length < vertInfos[opVert].dist)
+			{
+				vertInfos[opVert].birthTime = 0;
+				vertInfos[opVert].dist = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length;
+				vertInfos[opVert].enterEdge = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_iTwinEdge;
+				vertInfos[opVert].srcId = srcId; vertInfos[opVert].pseudoSrcId = srcId;
 
-			if (mesh->m_pAngles[opVert] < 2.0 * PI) continue;
+				if (mesh->m_pAngles[opVert] < 2.0 * PI) continue;
 
-			PseudoWindow pseudoWin;
-			pseudoWin.vertID = opVert; pseudoWin.dist = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length;
-			pseudoWin.srcId = srcId; pseudoWin.pseudoSrcId = srcId;
-			pseudoWin.pseudoBirthTime = vertInfos[opVert].birthTime;
-			pseudoWin.level = 0;
-			pseudoSrcQ.push(pseudoWin);
+				PseudoWindow pseudoWin;
+				pseudoWin.vertID = opVert; pseudoWin.dist = mesh->m_pEdge[mesh->m_pVertex[srcId].m_piEdge[j]].m_length;
+				pseudoWin.srcId = srcId; pseudoWin.pseudoSrcId = srcId;
+				pseudoWin.pseudoBirthTime = vertInfos[opVert].birthTime;
+				pseudoWin.level = 0;
+				pseudoSrcQ.push(pseudoWin);
+			}
 		}
 		vertInfos[srcId].birthTime = 0;
 		vertInfos[srcId].dist = 0.0;
