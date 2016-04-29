@@ -80,7 +80,7 @@ public:
 		unsigned level;
 		double x;
 
-		SplitInfo() { dist = DBL_MAX; pseudoSrcId = -1; x = DBL_MAX; }
+		SplitInfo() { dist = DBL_MAX; pseudoSrcId = -1; srcId = -1; level = -1; x = DBL_MAX; }
 	};
 
 	struct VertInfo
@@ -112,12 +112,14 @@ public:
 	void AddSource(unsigned vertId);
 	void AddSource(unsigned faceId, Vector3D pos);
 	void AddFacesKeptWindow(unsigned faceId);
+	void SetAllWindowsKept(bool keptAllWindows_) { keptAllWindows = keptAllWindows_; }
 	void SetMaxGeodRadius(double geodRadius_);
 	void Execute(int totalCalcVertNum_ = -1);
 	void OutputStatisticInfo();
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned faceId, Vector3D pos, unsigned &srcId);
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned vertId, unsigned &srcId);
 	double GetDistanceTo(unsigned vertId);
+	double GetDistanceTo(unsigned faceId, Vector3D pos);
 
 	SplitInfo& GetSplitInfo(int ei) { return splitInfos[ei]; }
 	VertInfo& GetVertInfo(int vi) { return vertInfos[vi]; }
@@ -150,6 +152,8 @@ private:
 
 	std::vector< Window > storedWindows;
 	std::vector< unsigned > keptFaces;
+	std::vector< std::list<Window> > allWindows;
+	bool keptAllWindows = false;
 
 	// statistics
 	int numOfWinGen;

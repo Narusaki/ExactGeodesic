@@ -7,7 +7,7 @@
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>kitten.11k.obj kitten.11k.info kitten.11k.out.obj kitten.11k.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>eight.uniform.obj eight.uniform7.info eight.uniform.out.obj eight.uniform.out.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
@@ -19,7 +19,7 @@ $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>kitten.11k.obj kitten.11k.info kitten.11k.out.obj kitten.11k.dist</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>eight.uniform.obj eight.uniform7.info eight.uniform.out.obj eight.uniform.out.dist</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(PATH);$(SolutionDir)\x64\$(Configuration)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>

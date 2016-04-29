@@ -36,6 +36,8 @@ void ICH::Clear()
 		splitInfos[i].dist = DBL_MAX;
 		splitInfos[i].x = DBL_MAX;
 		splitInfos[i].pseudoSrcId = -1;
+		splitInfos[i].srcId = -1;
+		splitInfos[i].level = -1;
 	}
 	for (int i = 0; i < mesh->m_nVertex; ++i)
 	{
@@ -51,6 +53,8 @@ void ICH::Clear()
 
 	storedWindows.clear();
 	keptFaces.clear();
+	allWindows.clear();
+	keptAllWindows = false;
 
 	numOfWinGen = 0;
 	maxWinQSize = 0;
@@ -115,8 +119,12 @@ void ICH::Execute(int totalCalcVertNum_)
 			// save windows for arbitrary dst geodesic construction
 			unsigned twinEdge = mesh->m_pEdge[win.edgeID].m_iTwinEdge;
 			if (twinEdge != -1)
+			{
 				if (find(keptFaces.begin(), keptFaces.end(), mesh->m_pEdge[twinEdge].m_iFace) != keptFaces.end())
 					storedWindows.push_back(win);
+				if (keptAllWindows)
+					allWindows[win.edgeID].push_back(win);
+			}
 			PropagateWindow(win);
 		}
 		else if (!pseudoSrcQ.empty() && (winQ.empty() || winQ.top().minDist >= pseudoSrcQ.top().dist))
@@ -149,68 +157,139 @@ list<ICH::GeodesicKeyPoint> ICH::BuildGeodesicPathTo(unsigned faceId, Vector3D p
 	unsigned dstVert = -1;
 	bool throughAWindow = true;
 
-	// traverse the surrounded windows
-	for (auto iter = storedWindows.begin(); iter != storedWindows.end(); ++iter)
+	if (keptAllWindows)
 	{
-		unsigned twinEdge = mesh->m_pEdge[iter->edgeID].m_iTwinEdge;
-		if (twinEdge == -1) continue;
-		if (mesh->m_pEdge[twinEdge].m_iFace != faceId) continue;
-
-		unsigned e0 = twinEdge;
-		unsigned e1 = mesh->m_pEdge[e0].m_iNextEdge;
-		unsigned e2 = mesh->m_pEdge[e1].m_iNextEdge;
-
-		double l0 = mesh->m_pEdge[e0].m_length;
-		double l1 = mesh->m_pEdge[e1].m_length;
-		double l2 = mesh->m_pEdge[e2].m_length;
-
-		unsigned v0 = mesh->m_pEdge[e0].m_iVertex[1];
-		unsigned v1 = mesh->m_pEdge[e0].m_iVertex[0];
-		unsigned v2 = mesh->m_pEdge[e1].m_iVertex[1];
-
-		Vector2D p0(0.0, 0.0), p1(l0, 0.0), p2;
-		p2.x = (l1*l1 + l0*l0 - l2*l2) / (2.0*l0);
-		p2.y = -sqrt(fabs(l1*l1 - p2.x*p2.x));
-
-		// window's pseudo source's 2D planar coordinate
-		Vector2D src2D = iter->FlatenedSrc();
-
-		// dst point's centroid coordinates
-		double a = (pos - mesh->m_pVertex[v0].m_vPosition).length();
-		double b = (pos - mesh->m_pVertex[v1].m_vPosition).length();
-		double c = (pos - mesh->m_pVertex[v2].m_vPosition).length();
-
-		double s0 = (b + c + l2) / 2.0;
-		double s1 = (a + c + l1) / 2.0;
-		double s2 = (a + b + l0) / 2.0;
-
-		s0 = sqrt(fabs(s0 * (s0 - b) * (s0 - c) * (s0 - l2)));
-		s1 = sqrt(fabs(s1 * (s1 - a) * (s1 - c) * (s1 - l1)));
-		s2 = sqrt(fabs(s2 * (s2 - a) * (s2 - b) * (s2 - l0)));
-
-		double w0 = s0 / (s0 + s1 + s2);
-		double w1 = s1 / (s0 + s1 + s2);
-		double w2 = s2 / (s0 + s1 + s2);
-
-		Vector2D curPos2D = w0 * p0 + w1 * p1 + w2 * p2;
-
-		// calculate the shortest distance
-		double curXInter = src2D.x - (curPos2D.x - src2D.x) / (curPos2D.y - src2D.y) * src2D.y;
-		if (curXInter <= 0.0 || curXInter >= l0) continue;
-		double curMinDist = DBL_MAX;
-		if (curXInter > iter->b0 && curXInter < iter->b1)
-			curMinDist = (curPos2D - src2D).length() + iter->pseudoSrcDist;
-		else if (curXInter <= iter->b0)
-			curMinDist = (curPos2D - Vector2D(iter->b0, 0.0)).length() + iter->d0 + iter->pseudoSrcDist;
-		else
-			curMinDist = (curPos2D - Vector2D(iter->b1, 0.0)).length() + iter->d1 + iter->pseudoSrcDist;
-
-		if (curMinDist < minDist)
+		for (int i = 0; i < 3; ++i)
 		{
-			minDist = curMinDist;
-			minWin = *iter;
-			xInter = curXInter;
-			pos2D = curPos2D;
+			unsigned curEdge = mesh->m_pFace[faceId].m_piEdge[i];
+			unsigned twinEdge = mesh->m_pEdge[curEdge].m_iTwinEdge;
+			if (twinEdge == -1) continue;
+			for (auto iter = allWindows[twinEdge].begin(); iter != allWindows[twinEdge].end(); ++iter)
+			{
+				unsigned e0 = curEdge;
+				unsigned e1 = mesh->m_pEdge[e0].m_iNextEdge;
+				unsigned e2 = mesh->m_pEdge[e1].m_iNextEdge;
+
+				double l0 = mesh->m_pEdge[e0].m_length;
+				double l1 = mesh->m_pEdge[e1].m_length;
+				double l2 = mesh->m_pEdge[e2].m_length;
+
+				unsigned v0 = mesh->m_pEdge[e0].m_iVertex[1];
+				unsigned v1 = mesh->m_pEdge[e0].m_iVertex[0];
+				unsigned v2 = mesh->m_pEdge[e1].m_iVertex[1];
+
+				Vector2D p0(0.0, 0.0), p1(l0, 0.0), p2;
+				p2.x = (l1*l1 + l0*l0 - l2*l2) / (2.0*l0);
+				p2.y = -sqrt(fabs(l1*l1 - p2.x*p2.x));
+
+				// window's pseudo source's 2D planar coordinate
+				Vector2D src2D = iter->FlatenedSrc();
+
+				// dst point's centroid coordinates
+				double a = (pos - mesh->m_pVertex[v0].m_vPosition).length();
+				double b = (pos - mesh->m_pVertex[v1].m_vPosition).length();
+				double c = (pos - mesh->m_pVertex[v2].m_vPosition).length();
+
+				double s0 = (b + c + l2) / 2.0;
+				double s1 = (a + c + l1) / 2.0;
+				double s2 = (a + b + l0) / 2.0;
+
+				s0 = sqrt(fabs(s0 * (s0 - b) * (s0 - c) * (s0 - l2)));
+				s1 = sqrt(fabs(s1 * (s1 - a) * (s1 - c) * (s1 - l1)));
+				s2 = sqrt(fabs(s2 * (s2 - a) * (s2 - b) * (s2 - l0)));
+
+				double w0 = s0 / (s0 + s1 + s2);
+				double w1 = s1 / (s0 + s1 + s2);
+				double w2 = s2 / (s0 + s1 + s2);
+
+				Vector2D curPos2D = w0 * p0 + w1 * p1 + w2 * p2;
+
+				// calculate the shortest distance
+				double curXInter = src2D.x - (curPos2D.x - src2D.x) / (curPos2D.y - src2D.y) * src2D.y;
+				if (curXInter <= 0.0 || curXInter >= l0) continue;
+				double curMinDist = DBL_MAX;
+				if (curXInter > iter->b0 && curXInter < iter->b1)
+					curMinDist = (curPos2D - src2D).length() + iter->pseudoSrcDist;
+				else if (curXInter <= iter->b0)
+					curMinDist = (curPos2D - Vector2D(iter->b0, 0.0)).length() + iter->d0 + iter->pseudoSrcDist;
+				else
+					curMinDist = (curPos2D - Vector2D(iter->b1, 0.0)).length() + iter->d1 + iter->pseudoSrcDist;
+
+				if (curMinDist < minDist)
+				{
+					minDist = curMinDist;
+					minWin = *iter;
+					xInter = curXInter;
+					pos2D = curPos2D;
+				}
+			}
+		}
+	}
+	else
+	{
+		// traverse the surrounded windows
+		for (auto iter = storedWindows.begin(); iter != storedWindows.end(); ++iter)
+		{
+			unsigned twinEdge = mesh->m_pEdge[iter->edgeID].m_iTwinEdge;
+			if (twinEdge == -1) continue;
+			if (mesh->m_pEdge[twinEdge].m_iFace != faceId) continue;
+
+			unsigned e0 = twinEdge;
+			unsigned e1 = mesh->m_pEdge[e0].m_iNextEdge;
+			unsigned e2 = mesh->m_pEdge[e1].m_iNextEdge;
+
+			double l0 = mesh->m_pEdge[e0].m_length;
+			double l1 = mesh->m_pEdge[e1].m_length;
+			double l2 = mesh->m_pEdge[e2].m_length;
+
+			unsigned v0 = mesh->m_pEdge[e0].m_iVertex[1];
+			unsigned v1 = mesh->m_pEdge[e0].m_iVertex[0];
+			unsigned v2 = mesh->m_pEdge[e1].m_iVertex[1];
+
+			Vector2D p0(0.0, 0.0), p1(l0, 0.0), p2;
+			p2.x = (l1*l1 + l0*l0 - l2*l2) / (2.0*l0);
+			p2.y = -sqrt(fabs(l1*l1 - p2.x*p2.x));
+
+			// window's pseudo source's 2D planar coordinate
+			Vector2D src2D = iter->FlatenedSrc();
+
+			// dst point's centroid coordinates
+			double a = (pos - mesh->m_pVertex[v0].m_vPosition).length();
+			double b = (pos - mesh->m_pVertex[v1].m_vPosition).length();
+			double c = (pos - mesh->m_pVertex[v2].m_vPosition).length();
+
+			double s0 = (b + c + l2) / 2.0;
+			double s1 = (a + c + l1) / 2.0;
+			double s2 = (a + b + l0) / 2.0;
+
+			s0 = sqrt(fabs(s0 * (s0 - b) * (s0 - c) * (s0 - l2)));
+			s1 = sqrt(fabs(s1 * (s1 - a) * (s1 - c) * (s1 - l1)));
+			s2 = sqrt(fabs(s2 * (s2 - a) * (s2 - b) * (s2 - l0)));
+
+			double w0 = s0 / (s0 + s1 + s2);
+			double w1 = s1 / (s0 + s1 + s2);
+			double w2 = s2 / (s0 + s1 + s2);
+
+			Vector2D curPos2D = w0 * p0 + w1 * p1 + w2 * p2;
+
+			// calculate the shortest distance
+			double curXInter = src2D.x - (curPos2D.x - src2D.x) / (curPos2D.y - src2D.y) * src2D.y;
+			if (curXInter <= 0.0 || curXInter >= l0) continue;
+			double curMinDist = DBL_MAX;
+			if (curXInter > iter->b0 && curXInter < iter->b1)
+				curMinDist = (curPos2D - src2D).length() + iter->pseudoSrcDist;
+			else if (curXInter <= iter->b0)
+				curMinDist = (curPos2D - Vector2D(iter->b0, 0.0)).length() + iter->d0 + iter->pseudoSrcDist;
+			else
+				curMinDist = (curPos2D - Vector2D(iter->b1, 0.0)).length() + iter->d1 + iter->pseudoSrcDist;
+
+			if (curMinDist < minDist)
+			{
+				minDist = curMinDist;
+				minWin = *iter;
+				xInter = curXInter;
+				pos2D = curPos2D;
+			}
 		}
 	}
 
@@ -455,6 +534,161 @@ double ICH::GetDistanceTo(unsigned vertId)
 	return vertInfos[vertId].dist;
 }
 
+double ICH::GetDistanceTo(unsigned faceId, Vector3D pos)
+{
+	double minDist = DBL_MAX;
+	// first, check if any source is on face faceId
+	for (auto iter = sourcePoints.begin(); iter != sourcePoints.end(); ++iter)
+	{
+		if (iter->first == faceId)
+			minDist = min(minDist, (pos - iter->second).length());
+	}
+	if (keptAllWindows)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			unsigned curEdge = mesh->m_pFace[faceId].m_piEdge[i];
+			unsigned twinEdge = mesh->m_pEdge[curEdge].m_iTwinEdge;
+			if (twinEdge == -1) continue;
+			for (auto iter = allWindows[twinEdge].begin(); iter != allWindows[twinEdge].end(); ++iter)
+			{
+				unsigned e0 = curEdge;
+				unsigned e1 = mesh->m_pEdge[e0].m_iNextEdge;
+				unsigned e2 = mesh->m_pEdge[e1].m_iNextEdge;
+
+				double l0 = mesh->m_pEdge[e0].m_length;
+				double l1 = mesh->m_pEdge[e1].m_length;
+				double l2 = mesh->m_pEdge[e2].m_length;
+
+				unsigned v0 = mesh->m_pEdge[e0].m_iVertex[1];
+				unsigned v1 = mesh->m_pEdge[e0].m_iVertex[0];
+				unsigned v2 = mesh->m_pEdge[e1].m_iVertex[1];
+
+				Vector2D p0(0.0, 0.0), p1(l0, 0.0), p2;
+				p2.x = (l1*l1 + l0*l0 - l2*l2) / (2.0*l0);
+				p2.y = -sqrt(fabs(l1*l1 - p2.x*p2.x));
+
+				// window's pseudo source's 2D planar coordinate
+				Vector2D src2D = iter->FlatenedSrc();
+
+				// dst point's centroid coordinates
+				double a = (pos - mesh->m_pVertex[v0].m_vPosition).length();
+				double b = (pos - mesh->m_pVertex[v1].m_vPosition).length();
+				double c = (pos - mesh->m_pVertex[v2].m_vPosition).length();
+
+				double s0 = (b + c + l2) / 2.0;
+				double s1 = (a + c + l1) / 2.0;
+				double s2 = (a + b + l0) / 2.0;
+
+				s0 = sqrt(fabs(s0 * (s0 - b) * (s0 - c) * (s0 - l2)));
+				s1 = sqrt(fabs(s1 * (s1 - a) * (s1 - c) * (s1 - l1)));
+				s2 = sqrt(fabs(s2 * (s2 - a) * (s2 - b) * (s2 - l0)));
+
+				double w0 = s0 / (s0 + s1 + s2);
+				double w1 = s1 / (s0 + s1 + s2);
+				double w2 = s2 / (s0 + s1 + s2);
+
+				Vector2D curPos2D = w0 * p0 + w1 * p1 + w2 * p2;
+
+				// calculate the shortest distance
+				double curXInter = src2D.x - (curPos2D.x - src2D.x) / (curPos2D.y - src2D.y) * src2D.y;
+				if (curXInter <= 0.0 || curXInter >= l0) continue;
+				double curMinDist = DBL_MAX;
+				if (curXInter > iter->b0 && curXInter < iter->b1)
+					curMinDist = (curPos2D - src2D).length() + iter->pseudoSrcDist;
+				else if (curXInter <= iter->b0)
+					curMinDist = (curPos2D - Vector2D(iter->b0, 0.0)).length() + iter->d0 + iter->pseudoSrcDist;
+				else
+					curMinDist = (curPos2D - Vector2D(iter->b1, 0.0)).length() + iter->d1 + iter->pseudoSrcDist;
+
+				minDist = min(minDist, curMinDist);
+			}
+		}
+
+		// traverse the surrounded vertices
+		for (int i = 0; i < 3; ++i)
+		{
+			unsigned opVert = mesh->m_pFace[faceId].m_piVertex[i];
+			if (mesh->m_pAngles[opVert] < 2.0 * PI) continue;
+
+			double curDist = (pos - mesh->m_pVertex[opVert].m_vPosition).length() + vertInfos[opVert].dist;
+			minDist = min(minDist, curDist);
+		}
+	}
+	else
+	{
+		// traverse the surrounded windows
+		for (auto iter = storedWindows.begin(); iter != storedWindows.end(); ++iter)
+		{
+			unsigned twinEdge = mesh->m_pEdge[iter->edgeID].m_iTwinEdge;
+			if (twinEdge == -1) continue;
+			if (mesh->m_pEdge[twinEdge].m_iFace != faceId) continue;
+
+			unsigned e0 = twinEdge;
+			unsigned e1 = mesh->m_pEdge[e0].m_iNextEdge;
+			unsigned e2 = mesh->m_pEdge[e1].m_iNextEdge;
+
+			double l0 = mesh->m_pEdge[e0].m_length;
+			double l1 = mesh->m_pEdge[e1].m_length;
+			double l2 = mesh->m_pEdge[e2].m_length;
+
+			unsigned v0 = mesh->m_pEdge[e0].m_iVertex[1];
+			unsigned v1 = mesh->m_pEdge[e0].m_iVertex[0];
+			unsigned v2 = mesh->m_pEdge[e1].m_iVertex[1];
+
+			Vector2D p0(0.0, 0.0), p1(l0, 0.0), p2;
+			p2.x = (l1*l1 + l0*l0 - l2*l2) / (2.0*l0);
+			p2.y = -sqrt(fabs(l1*l1 - p2.x*p2.x));
+
+			// window's pseudo source's 2D planar coordinate
+			Vector2D src2D = iter->FlatenedSrc();
+
+			// dst point's centroid coordinates
+			double a = (pos - mesh->m_pVertex[v0].m_vPosition).length();
+			double b = (pos - mesh->m_pVertex[v1].m_vPosition).length();
+			double c = (pos - mesh->m_pVertex[v2].m_vPosition).length();
+
+			double s0 = (b + c + l2) / 2.0;
+			double s1 = (a + c + l1) / 2.0;
+			double s2 = (a + b + l0) / 2.0;
+
+			s0 = sqrt(fabs(s0 * (s0 - b) * (s0 - c) * (s0 - l2)));
+			s1 = sqrt(fabs(s1 * (s1 - a) * (s1 - c) * (s1 - l1)));
+			s2 = sqrt(fabs(s2 * (s2 - a) * (s2 - b) * (s2 - l0)));
+
+			double w0 = s0 / (s0 + s1 + s2);
+			double w1 = s1 / (s0 + s1 + s2);
+			double w2 = s2 / (s0 + s1 + s2);
+
+			Vector2D curPos2D = w0 * p0 + w1 * p1 + w2 * p2;
+
+			// calculate the shortest distance
+			double curXInter = src2D.x - (curPos2D.x - src2D.x) / (curPos2D.y - src2D.y) * src2D.y;
+			if (curXInter <= 0.0 || curXInter >= l0) continue;
+			double curMinDist = DBL_MAX;
+			if (curXInter > iter->b0 && curXInter < iter->b1)
+				curMinDist = (curPos2D - src2D).length() + iter->pseudoSrcDist;
+			else if (curXInter <= iter->b0)
+				curMinDist = (curPos2D - Vector2D(iter->b0, 0.0)).length() + iter->d0 + iter->pseudoSrcDist;
+			else
+				curMinDist = (curPos2D - Vector2D(iter->b1, 0.0)).length() + iter->d1 + iter->pseudoSrcDist;
+
+			minDist = min(minDist, curMinDist);
+		}
+
+		// traverse the surrounded vertices
+		for (int i = 0; i < 3; ++i)
+		{
+			unsigned opVert = mesh->m_pFace[faceId].m_piVertex[i];
+			/*if (mesh->verts[opVert].angle < 2.0 * PI) continue;*/
+
+			double curDist = (pos - mesh->m_pVertex[opVert].m_vPosition).length() + vertInfos[opVert].dist;
+			minDist = min(minDist, curDist);
+		}
+	}
+	return minDist;
+}
+
 void ICH::Initialize()
 {
 	for (int i = 0; i < sourceVerts.size(); ++i)
@@ -516,6 +750,9 @@ void ICH::Initialize()
 			winQ.push(win);
 
 			unsigned opVert = mesh->m_pEdge[opEdge].m_iVertex[0];
+			if ((sourcePoints[i].second - mesh->m_pVertex[opVert].m_vPosition).length() > vertInfos[opVert].dist)
+				continue;
+
 			vertInfos[opVert].birthTime = 0;
 			vertInfos[opVert].dist = (sourcePoints[i].second - mesh->m_pVertex[opVert].m_vPosition).length();
 			vertInfos[opVert].enterEdge = -1;
