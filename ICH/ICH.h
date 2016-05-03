@@ -118,6 +118,8 @@ public:
 	void OutputStatisticInfo();
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned faceId, Vector3D pos, unsigned &srcId);
 	std::list<GeodesicKeyPoint> BuildGeodesicPathTo(unsigned vertId, unsigned &srcId);
+	GeodesicKeyPoint BuildGeodesicPathOnlyDir(unsigned faceId, Vector3D pos, unsigned &srcId);
+	GeodesicKeyPoint BuildGeodesicPathOnlyDir(unsigned vertId, unsigned &srcId);
 	double GetDistanceTo(unsigned vertId);
 	double GetDistanceTo(unsigned faceId, Vector3D pos);
 
